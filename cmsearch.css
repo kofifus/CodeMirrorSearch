@@ -1,0 +1,60 @@
+.CMsearchBox {
+	display: inline-block; 
+	line-height: 0em;
+	border: 2px solid grey; 
+	padding: 10px 8px 6px 8px; 
+	z-index:1000; 
+	position: fixed; 
+}
+
+.fbSearchInputs {
+	height:18px;
+	width:180px; 
+	font-size:90%;
+}
+.fbSearchBigBtns {
+	height:18px;
+	width: 20px;
+	margin: 0px 5px 0px 0px;
+	padding: 1px 1px 2px 1px;
+	font-size:100%;
+	/*padding: 1px 3px 1px 3px;*/
+	
+	/*font-family: monospace;*/
+}
+.fbSearchBigBtns:focus {
+	width: 21px;
+	border-color: black;
+	border-width: 1px;
+}
+
+.fbSearchSmallBtns {
+	height:14px;
+	margin: 1px 0px 0px 3px;
+	font-size:90%;
+	padding: 0px 1px 0px 1px;
+	font-family: monospace;
+}
+
+/* setting a selection background color to prevent selection color changing when moving to search widget */
+.CodeMirror-selected  { 
+	background-color: #B0C4DE !important; 
+}
+
+/* bg color for search highlight overlay not in selection */
+.cm-searchHighlight {
+	/*background-color: rgba(255, 255, 180, 1);*/
+	border: 1px solid olive;
+}
+
+/* search in selection - bg color for search highlight overlay */
+.CodeMirror-selectedtext.cm-inSelectionSearchHighlight {
+	/*background-color: rgba(228, 228, 186, 1) !important;*/
+	border: 1px solid gray;
+}
+
+/* search in selection - bg color for search match */
+.CodeMirror-selectedtext.cm-inSelectionSearchHighlight.cm-searchMatch {
+	/*background-color: rgba(220, 220, 67, 1) !important;*/
+	background-color: rgba(255, 255, 180, 1);
+}
