@@ -29,7 +29,7 @@ Enhanced CodeMirror search and replace
       initCMsearch(cm);      
     </script>
 <br/>
-<h3>Key Bindings</h3>
+<h4>Key Bindings</h4>
 
 Ctrl-F  =>  show find widget<br/>
 Ctrl-G / F3 => find next<br/>
@@ -38,7 +38,7 @@ Shift-Ctrl-F / Ctrl-H => show replace widget<br/>
 Shift-Ctrl-R => replace all<br/>
 Esc => hide widget & highlights<br/>
 <br/>
-<h3>Features</h3>
+<h4>Features</h4>
 
  - combo boxes search and replace
  - find next / find prev / replace next / replace prev / replace all
@@ -46,5 +46,5 @@ Esc => hide widget & highlights<br/>
     wrap around / highlight / persistent dialog
     
 <br/>
-<h3>Demo</h3>
+<h4>Demo</h4>
 http://plnkr.co/edit/LEEZf2Vt9U6PASRGpsrt?p=preview
