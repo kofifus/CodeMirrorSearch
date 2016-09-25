@@ -87,13 +87,12 @@ function SearchBox()  {
 		if (resizeInterval) clearInterval(resizeInterval);
 		resizeInterval=setInterval(() => {
 			let currRect=parent.getBoundingClientRect();
-			if ((currRect.height===0 && currRect.width===0) || currRect.x<0 || currRect.y<0) {
+			if (!currRect || !currRect.height || currRect.height===0 || parseFloat(sboxElem.style.top)<0) {
 				clearInterval(resizeInterval); 
 				resizeInterval=null;
 			} else {
 				if (lastRect && (currRect.left!==lastRect.left || currRect.top!==lastRect.top || currRect.right!==lastRect.right 
-					|| currRect. bottom!==lastRect.bottom || currRect.x!==lastRect.x || currRect.y!==lastRect.y 
-					|| currRect.width!==lastRect.width || currRect. height!==lastRect.height)) position();
+					|| currRect. bottom!==lastRect.bottom || currRect.width!==lastRect.width || currRect. height!==lastRect.height)) position();
 				lastRect=currRect;	
 			}
 		}, 500);
