@@ -24,7 +24,6 @@
 	width: 21px;
 	border-color: black;
 	border-width: 1px;
-	line-height:0px;
 }
 
 .fbSearchSmallBtns {
@@ -33,6 +32,7 @@
 	font-size:90%;
 	padding: 0px 1px 0px 1px;
 	font-family: monospace;
+	line-height:0px;
 }
 
 /* setting a selection background color to prevent selection color changing when moving to search widget */
