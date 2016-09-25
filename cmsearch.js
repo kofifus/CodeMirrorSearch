@@ -1,12 +1,8 @@
-/*jshint devel:true, globalstrict:true, browser:true, eqeqeq:true, latedef:nofunc, newcap:true, noarg:true, noempty:true, nonew:true, quotmark:single, undef:true*/
-/*global */
-
-
 function SearchBox()  {
 	"use strict";
 	let self, parent, btnState;
 	let sboxElem, scombo, rcombo, workBtnsArr, optBtnsArr
-	let changeFunc, optchangeFunc, keydownFunc, blurFunc; // events
+	let changeFunc, optchangeFunc, keydownFunc, oninputFunc, blurFunc; // events
 
 	function getElem(id) { 
 		return sboxElem.querySelector('[data-id='+id+']'); 
@@ -147,6 +143,10 @@ function SearchBox()  {
 			}
 		};
 
+		scombo.oninput = rcombo.onkeydown = (e, combo) => {
+			if (oninputFunc) oninputFunc(e, combo===scombo);
+		};
+
 		// hook onclick for next/prev/repl/replPrev/all
 		let workBtnClick = e => {
 			e.stopPropagation();
@@ -266,7 +266,8 @@ function SearchBox()  {
 		// events
 		set onchange(f) { changeFunc=f;  }, // call f(q, op) -> (query,  'next'/'prev'/'replaceNext'/'replacePrev'/replaceAll') 
 		set onoptchange(f) { optchangeFunc=f; }, // call f(id, btnState) when an option button is clicked
-		set onkeydown(f) { keydownFunc=f;  }, // f(key, q) -> (e.key, query) 
+		set onkeydown(f) { keydownFunc=f;  }, // call f(e, isSearchCombo) when keydown in one of the combos
+		set oninput(f) { oninputFunc=f; }, // f(e, isSearchCombo) when oninput in the search combo
 		set onblur(f) { blurFunc=f; }, // f()
 	};
 }
@@ -510,9 +511,11 @@ function CMsearch() {
 				sbox.hide();
 				hideHighlight();
 				cm.focus();
-			}  else if (inFind && (e.key.length===1 || ['Backspace', 'Cut', 'Delete', 'Paste', 'Redo', 'Undo'].indexOf(e.key)>-1)) {
-				setQuery(sbox.value[0]); 
 			}
+		};
+
+		sbox.oninput = (e, inFind) => {
+			if (inFind) setQuery(sbox.value[0]); 
 		};
 
 		sbox.onblur = () => {
@@ -528,8 +531,8 @@ function CMsearch() {
 		});
 
 		// keep an unblinking cursor on when blurring
-		codeMirror.on('blur', cm => { cmToggleCursorsClass(cm, 'CodeMirror-cursorsVisible', true); });
-		codeMirror.on('focus', cm => {	cmToggleCursorsClass(cm, 'CodeMirror-cursorsVisible', false); });
+		cm.on('blur', cm => { cmToggleCursorsClass(cm, 'CodeMirror-cursorsVisible', true); });
+		cm.on('focus', cm => {	cmToggleCursorsClass(cm, 'CodeMirror-cursorsVisible', false); });
 	}
 
 	function ctor(cm_) {
