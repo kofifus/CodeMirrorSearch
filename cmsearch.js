@@ -1,12 +1,9 @@
-/*jshint devel:true, globalstrict:true, browser:true, eqeqeq:true, latedef:nofunc, newcap:true, noarg:true, noempty:true, nonew:true, quotmark:single, undef:true*/
-/*global */
-
-
 function SearchBox()  {
 	"use strict";
 	let self, parent, btnState;
 	let sboxElem, scombo, rcombo, workBtnsArr, optBtnsArr
 	let changeFunc, optchangeFunc, keydownFunc, oninputFunc, blurFunc; // events
+	let resizeInterval, lastRect;
 
 	function getElem(id) { 
 		return sboxElem.querySelector('[data-id='+id+']'); 
@@ -72,19 +69,34 @@ function SearchBox()  {
 		panel.style.display=(t ? 'inline' : 'none');
 	}
 
-	function show(query=undefined, withReplace=false) {
-		if (query!==undefined) scombo.value=query;
-		toggleReplace(withReplace);
-		//toggleOptPanel(false);
-
+	function position() {
 		// position sbox on top right of parent
 		let pRect=parent.getBoundingClientRect();
 		let sRect = sboxElem.getBoundingClientRect();
 		sboxElem.style.top=(pRect.top+2)+'px';
 		sboxElem.style.left=(pRect.right-sRect.width-2)+'px';
+	}
 
+	function show(query=undefined, withReplace=false) {
+		if (query!==undefined) scombo.value=query;
+		toggleReplace(withReplace);
+		position();
 		select(true);
 		scombo.focus();
+
+		if (resizeInterval) clearInterval(resizeInterval);
+		resizeInterval=setInterval(() => {
+			let currRect=parent.getBoundingClientRect();
+			if ((currRect.height===0 && currRect.width===0) || currRect.x<0 || currRect.y<0) {
+				clearInterval(resizeInterval); 
+				resizeInterval=null;
+			} else {
+				if (lastRect && (currRect.left!==lastRect.left || currRect.top!==lastRect.top || currRect.right!==lastRect.right 
+					|| currRect. bottom!==lastRect.bottom || currRect.x!==lastRect.x || currRect.y!==lastRect.y 
+					|| currRect.width!==lastRect.width || currRect. height!==lastRect.height)) position();
+				lastRect=currRect;	
+			}
+		}, 500);
 	}
 
 	function hide()  {
