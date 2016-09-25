@@ -9,12 +9,12 @@ Enhanced CodeMirror search and replace
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.19.0/addon/scroll/simplescrollbars.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.19.0/addon/search/searchcursor.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.19.0/addon/selection/mark-selection.js"></script>
+  	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.18.0/codemirror.css">
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.19.0/addon/scroll/simplescrollbars.css">
     
     <script src="https://rawgit.com/kofifus/New/master/new.min.js"></script>
     <script src="https://rawgit.com/kofifus/Combo/master/combo.min.js"></script>    
     <script src="https://rawgit.com/kofifus/CodeMirrorSearch/master/cmsearch.min.js"></script>
-    
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.18.0/codemirror.css">
     <link rel="stylesheet" type="text/css" href="https://rawgit.com/kofifus/CodeMirrorSearch/master/cmsearch.css">
         
     <style>
@@ -24,7 +24,8 @@ Enhanced CodeMirror search and replace
     <textarea id="ta"></textarea>
     
     <script>
-      var cm = CodeMirror.fromTextArea(document.getElementById('ta'), {lineWrapping:true});
+      let ta=document.getElementById('ta');
+      let cm = CodeMirror.fromTextArea(ta, { lineWrapping:true, scrollbarStyle:'simple', showCursorWhenSelecting:true, styleSelectedText:true });
       cm.setValue('some text');
       initCMsearch(cm);      
     </script>
