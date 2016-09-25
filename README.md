@@ -9,7 +9,7 @@ Enhanced CodeMirror search and replace
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.19.0/addon/scroll/simplescrollbars.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.19.0/addon/search/searchcursor.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.19.0/addon/selection/mark-selection.js"></script>
-  	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.18.0/codemirror.css">
+  	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.19.0/codemirror.css">
 	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.19.0/addon/scroll/simplescrollbars.css">
     
     <script src="https://rawgit.com/kofifus/New/master/new.min.js"></script>
