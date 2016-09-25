@@ -1,3 +1,7 @@
+/*jshint devel:true, globalstrict:true, browser:true, eqeqeq:true, latedef:nofunc, newcap:true, noarg:true, noempty:true, nonew:true, quotmark:single, undef:true*/
+/*global */
+
+
 function SearchBox()  {
 	"use strict";
 	let self, parent, btnState;
@@ -237,7 +241,7 @@ function SearchBox()  {
 		sboxElem.outerHTML=outerHtml;
 		sboxElem=parent.children[indexInParent];
 
-		let parentBG=window.getComputedStyle(document.body, null).getPropertyValue('background-color');
+		let parentBG=window.getComputedStyle(parent, null).getPropertyValue('background-color');
 		parentBG=parentBG.replace(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/, 'rgba($1,$2,$2,0.8)'); // add opacity
 		sboxElem.style.backgroundColor=parentBG;
 
