@@ -18,14 +18,13 @@
 	margin: 0px 5px 0px 0px;
 	padding: 1px 1px 2px 1px;
 	font-size:14px;
-	/*padding: 1px 3px 1px 3px;*/
-	
-	/*font-family: monospace;*/
+	line-height:0px;
 }
 .fbSearchBigBtns:focus {
 	width: 21px;
 	border-color: black;
 	border-width: 1px;
+	line-height:0px;
 }
 
 .fbSearchSmallBtns {
