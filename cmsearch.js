@@ -74,7 +74,7 @@ function SearchBox()  {
 		let pRect=parent.getBoundingClientRect();
 		let sRect = sboxElem.getBoundingClientRect();
 		sboxElem.style.top=(pRect.top+2)+'px';
-		sboxElem.style.left=(pRect.right-sRect.width-2)+'px';
+		sboxElem.style.left=(pRect.right-sRect.width-9)+'px';
 	}
 
 	function show(query=undefined, withReplace=false) {
