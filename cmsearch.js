@@ -107,7 +107,8 @@ function SearchBox()  {
 	}
 
 	// set input text color red for 500ms
-	function notFound() { 
+	function notFound() {
+		scombo.focus();
 		let scomboElem=getElem('scombo');
 		scomboElem.style.borderColor='red';
 		scombo.getInputElement().style.color='red';
@@ -165,6 +166,7 @@ function SearchBox()  {
 		// hook onclick for next/prev/repl/replPrev/all
 		let workBtnClick = e => {
 			e.stopPropagation();
+			scombo.focus();
 			if (changeFunc) {
 				let id=e.currentTarget.dataset.id;
 				changeFunc(id);
@@ -394,14 +396,11 @@ function CMsearch() {
 		let sa=getSearchArea();
 
 		let pos, prevMatch=(matchMark ? matchMark.find() : null);
-
 		if (btnState.inSelection) {
 			pos=(prevMatch ? (fw ? prevMatch.to : prevMatch.from) : sa.from);
 		} else {
 			pos=cm.getCursor();
-			if (prevMatch) {
-				if (fw && cmposEq(pos, prevMatch.from)) pos=prevMatch.to; else if (!fw && cmposEq(pos, prevMatch.to)) pos=prevMatch.from; 
-			}
+			if (prevMatch && !fw && cmposEq(pos, prevMatch.to)) pos=prevMatch.from; 
 		}
 
 		let cursor = cm.getSearchCursor(qRegExp, pos);
@@ -423,7 +422,10 @@ function CMsearch() {
 			return false;
 		}
 
-		if (!btnState.persistent) sbox.hide();
+		if (!btnState.persistent) {
+			sbox.hide();
+			cm.focus();
+		}
 
 		cm.scrollIntoView( {from: cursor.from(), to: cursor.to() }, 20);
 		
@@ -542,7 +544,10 @@ function CMsearch() {
 		});
 
 		cm.on('change', (cm, changeObj) => {	
-			if (!btnState.persistent && changeObj.origin) hideHighlight(); 
+			if (changeObj.origin) {
+				if (!btnState.persistent) hideHighlight();
+				if (matchMark) { matchMark.clear(); matchMark=null; }
+			}
 		});
 
 		// keep an unblinking cursor on when blurring
