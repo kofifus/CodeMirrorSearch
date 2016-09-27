@@ -3,7 +3,6 @@ function SearchBox()  {
 	let self, parent, btnState;
 	let sboxElem, scombo, rcombo, workBtnsArr, optBtnsArr
 	let changeFunc, optchangeFunc, keydownFunc, oninputFunc, blurFunc; // events
-	let resizeInterval, lastRect;
 
 	function getElem(id) { 
 		return sboxElem.querySelector('[data-id='+id+']'); 
@@ -69,7 +68,8 @@ function SearchBox()  {
 		panel.style.display=(t ? 'inline' : 'none');
 	}
 
-	function position() {
+	function position(andShow) {
+		if (parseFloat(sboxElem.style.top)<0 && !andShow) return; // hidden
 		// position sbox on top right of parent
 		let pRect=parent.getBoundingClientRect();
 		let sRect = sboxElem.getBoundingClientRect();
@@ -80,22 +80,9 @@ function SearchBox()  {
 	function show(query=undefined, withReplace=false) {
 		if (query!==undefined) scombo.value=query;
 		toggleReplace(withReplace);
-		position();
+		position(true);
 		select(true);
 		scombo.focus();
-
-		if (resizeInterval) clearInterval(resizeInterval);
-		resizeInterval=setInterval(() => {
-			let currRect=parent.getBoundingClientRect();
-			if (!currRect || !currRect.height || currRect.height===0 || parseFloat(sboxElem.style.top)<0) {
-				clearInterval(resizeInterval); 
-				resizeInterval=null;
-			} else {
-				if (lastRect && (currRect.left!==lastRect.left || currRect.top!==lastRect.top || currRect.right!==lastRect.right 
-					|| currRect. bottom!==lastRect.bottom || currRect.width!==lastRect.width || currRect. height!==lastRect.height)) position();
-				lastRect=currRect;	
-			}
-		}, 500);
 	}
 
 	function hide()  {
@@ -107,7 +94,7 @@ function SearchBox()  {
 	}
 
 	// set input text color red for 500ms
-	function notFound() {
+	function notFound() { 
 		scombo.focus();
 		let scomboElem=getElem('scombo');
 		scomboElem.style.borderColor='red';
@@ -274,6 +261,7 @@ function SearchBox()  {
 		ctor,
 		show,
 		hide,
+		position, // reposition the box if it is visible
 		focus,
 		notFound,
 		overlaps,
@@ -383,19 +371,19 @@ function CMsearch() {
 		if (cmposAfter(selection.from, selection.to)) selection={ from: selection.to, to: selection.from };
 
 		// verify our selection is not the matchMark
-		if (selections.length===1 && matchMark && cmposEq(matchMark.find().from, selection.from) && cmposEq(matchMark.find().to, selection.to)) return nullSel;
+		let markfind=(matchMark && matchMark.find() ? matchMark.find() : null);
+		if (selections.length===1 && markfind && cmposEq(markfind.from, selection.from) && cmposEq(markfind.to, selection.to)) return nullSel;
 
 		return selection;
 	}
 
-	function find(fw=true) { setTimeout(findx, 20, fw); } // escape any key handlers
-	
 	function findx(fw=true) {
 		if (!qRegExp) return;
 
 		let sa=getSearchArea();
 
 		let pos, prevMatch=(matchMark ? matchMark.find() : null);
+
 		if (btnState.inSelection) {
 			pos=(prevMatch ? (fw ? prevMatch.to : prevMatch.from) : sa.from);
 		} else {
@@ -455,6 +443,8 @@ function CMsearch() {
 			qr=qr.replace(/\$(\d)/g, function(_, i) { return match[i]; });
 		} 
 		cm.replaceRange(qr, pos.from, pos.to);
+		matchMark.clear(); matchMark=null; 
+		matchMark=cm.markText(pos.from, pos.to, { className: 'cm-searchMatch' }); 
 				
 		find(fw);
 	}
@@ -539,8 +529,8 @@ function CMsearch() {
 			if (!btnState.persistent) sbox.hide();
 		};
 
-		cm.on('beforeSelectionChange', cm => {
-			if (btnState.inSelection && matchMark) { matchMark.clear(); matchMark=null; }
+		cm.on('beforeSelectionChange', (cm, obj) => {
+			if (obj.origin && btnState.inSelection && matchMark) { matchMark.clear(); matchMark=null; }
 		});
 
 		cm.on('change', (cm, changeObj) => {	
@@ -548,6 +538,10 @@ function CMsearch() {
 				if (!btnState.persistent) hideHighlight();
 				if (matchMark) { matchMark.clear(); matchMark=null; }
 			}
+		});
+
+		cm.on('refresh', cm => {
+			sbox.position();
 		});
 
 		// keep an unblinking cursor on when blurring
