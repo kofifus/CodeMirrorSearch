@@ -16,6 +16,7 @@ div.CodeMirror-cursorsVisible {
 	width:150px; 
 	font-size:90%;
 }
+
 .fbSearchBigBtns {
 	height:18px;
 	width: 20px;
@@ -23,7 +24,9 @@ div.CodeMirror-cursorsVisible {
 	padding: 1px 1px 2px 1px;
 	font-size:14px;
 	line-height:0px;
+	position: relative;
 }
+
 .fbSearchBigBtns:focus {
 	width: 21px;
 	border-color: black;
