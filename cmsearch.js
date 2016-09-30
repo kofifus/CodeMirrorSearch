@@ -302,18 +302,11 @@ function CMsearch() {
 	"use strict";
 	let cm, btnState, sbox, highlightRegex, matchMark;
 
-	function cmposBefore(p1 ,p2) {
-		return p1.line<p2.line || (p1.line===p2.line && p1.ch < p2.ch);
-	}
-	function cmposAfter(p1 ,p2) {
-		return p1.line>p2.line || (p1.line===p2.line && p1.ch > p2.ch);
-	}
-	function cmposEq(p1 ,p2) {
-		return p1.line===p2.line && p1.ch===p2.ch;
-	}
-	function cmposFirst() {
-		return { line:0, ch:0};
-	}
+	// helpers
+	function cmposBefore(p1 ,p2) { return p1.line<p2.line || (p1.line===p2.line && p1.ch < p2.ch);	}
+	function cmposAfter(p1 ,p2) { return p1.line>p2.line || (p1.line===p2.line && p1.ch > p2.ch); }
+	function cmposEq(p1 ,p2) { return p1.line===p2.line && p1.ch===p2.ch; }
+	function cmposFirst() { return { line:0, ch:0}; }
 	function cmposLast(cm) {
 		let line=cm.lineCount()-1, ch=cm.getLine(line).trim().length;
 		while(line>0 &&ch===0) { line--; ch=cm.getLine(line).trim().length; }
@@ -327,7 +320,7 @@ function CMsearch() {
 		return selection;		
 	}
 
-	// If newState is provided add/remove theClass accordingly, otherwise toggle theClass
+	// toggle CSS class, If newState is provided add/remove theClass accordingly, otherwise toggle theClass
 	function toggleClass(elem, theClass, newState) {
 		let matchRegex = new RegExp('(?:^|\\s)' + theClass + '(?!\\S)', 'g');
 		let add = (arguments.length > 2 ? newState : (elem.className.match(matchRegex) === null));
@@ -391,7 +384,7 @@ function CMsearch() {
 		cm.setOption('maxHighlightLength', (--cm.options.maxHighlightLength) +1); // hack to rerun the overlay
 	}
 
-	// return true if the current selection is exactly the matchPos
+	// return true if the current selection is exactly the matchPos, used when toggling inSelection
 	function selectionIsMatchmark() {
 		let selection=cmselection(), pos=(matchMark ? matchMark.find() : null);
 		return (btnState.inSelection && selection && pos && cmposEq(pos.from, selection.from) && cmposEq(pos.to, selection.to));
