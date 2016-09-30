@@ -2,7 +2,7 @@ div.CodeMirror-cursorsVisible {
 	visibility: visible !important;
 }
 
-.CMsearchBox {
+.cmsearchBox {
 	display: inline-block; 
 	line-height: 0em;
 	border: 2px solid grey; 
@@ -11,35 +11,33 @@ div.CodeMirror-cursorsVisible {
 	position: fixed; 
 }
 
-.fbSearchInputs {
+.cmsearchCombo {
 	height:18px;
 	width:150px; 
 	font-size:90%;
 }
 
-.fbSearchBigBtns {
+.cmsearchBigBtns {
 	height:18px;
 	width: 20px;
 	margin: 0px 3px 0px 0px;
 	padding: 1px 1px 2px 1px;
-	font-size:14px;
-	line-height:0px;
+	font-size:100%;
 	position: relative;
 }
 
-.fbSearchBigBtns:focus {
+.cmsearchBigBtns:focus {
 	width: 21px;
 	border-color: black;
 	border-width: 1px;
 }
 
-.fbSearchSmallBtns {
+.cmsearchSmallBtns {
 	height:14px;
 	margin: 1px 0px 0px 3px;
 	font-size:90%;
 	padding: 0px 1px 0px 1px;
 	font-family: monospace;
-	line-height:0px;
 }
 
 /* setting a selection background color to prevent selection color changing when moving to search widget */
