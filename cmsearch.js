@@ -636,6 +636,7 @@ function CMsearch() {
 
 
 function initCMsearch(cm) {
+	"use strict";
 	// create an instance of SearchAndReplace (held by the key bindings)
 	let cmsearch=CMsearch.New(cm);
 
