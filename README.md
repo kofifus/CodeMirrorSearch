@@ -36,6 +36,8 @@ Ctrl-F  =>  show find widget<br/>
 Ctrl-G / F3 => find next<br/>
 Shift-Ctrl-G / Shift-F3 => find prev<br/>
 Shift-Ctrl-F / Ctrl-H => show replace widget<br/>
+ctrl+F3 / shift+ctrl+H => replace next<br/>
+shift+ctrl+F3 => replace prev<br/>
 Shift-Ctrl-R => replace all<br/>
 Esc => hide widget & highlights<br/>
 <br/>
