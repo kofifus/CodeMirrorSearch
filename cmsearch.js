@@ -1,3 +1,4 @@
+// Search widget
 function SearchBox()  {
 	"use strict";
 	let self, parent, btnState;
@@ -8,15 +9,15 @@ function SearchBox()  {
 		return sboxElem.querySelector('[data-id='+id+']'); 
 	}
 
-	// toggle replace combo
-	function toggleReplace(t=undefined) {
-		if (t===undefined) t=(btnRnext.style.display==='none');
-		rcombo.toggle(t)
-		getElem('replaceNext').style.display=getElem('replacePrev').style.display=getElem('replaceAll').style.display=(t ? 'inline' : 'none');
-	}
-
 	function replaceVisible() {
 		return getElem('replaceNext').style.display!=='none';
+	}
+
+	// toggle replace combo
+	function toggleReplace(t=undefined) {
+		if (t===undefined) t=!replaceVisible();
+		rcombo.toggle(t)
+		getElem('replaceNext').style.display=getElem('replacePrev').style.display=getElem('replaceAll').style.display=(t ? 'inline' : 'none');
 	}
 
 	// return { btn, id } - o is either btn elem or btn id
@@ -36,7 +37,7 @@ function SearchBox()  {
 		return btn ? btn.style.borderStyle==='inset' : false;
 	}
 
-	// toggle optBtn
+	// toggle optBtn, o is either btn elem or btn id
 	function toggleOpt(o, t=undefined) {
 		let { btn, id }=optElem(o);
 		if (!btn) return null;
@@ -48,7 +49,7 @@ function SearchBox()  {
 		return t;
 	}
 
-	// toggle optBtn
+	// disable optBtn, o is either btn elem or btn id
 	function disableOpt(o, t=undefined) {
 		let { btn, id }=optElem(o);
 		if (!btn) return null;
@@ -62,38 +63,47 @@ function SearchBox()  {
 	// toggle the option panel
 	function toggleOptPanel(t=undefined) {
 		const upTriangle=String.fromCharCode(0x25b2), downTriangle=String.fromCharCode(0x25bc);
-		let panel=sboxElem.getElementsByClassName('cmsb_optBtnsDiv')[0];
+		let panel=getElem('optBtnsDiv');
 		if (t===undefined) t=!(panel.style.display==='inline');
 		getElem('optToggler').innerHTML=(t ? upTriangle : downTriangle);
 		panel.style.display=(t ? 'inline' : 'none');
+		scombo.focus();
 	}
 
-	function position(andShow) {
-		if (parseFloat(sboxElem.style.top)<0 && !andShow) return; // hidden
-		// position sbox on top right of parent
+	// return true iff sbox is visible
+	function visible() {
+		return parseFloat(sboxElem.style.top)>=0;
+	}
+
+	// position sbox on top right of parent if visible or optionally also if not
+	function position(andShow=false) {
+		if (!visible() && !andShow) return; // hidden
 		let pRect=parent.getBoundingClientRect();
 		let sRect = sboxElem.getBoundingClientRect();
 		sboxElem.style.top=(pRect.top+2)+'px';
 		sboxElem.style.left=(pRect.right-sRect.width-9)+'px';
 	}
 
-	function show(query=undefined, withReplace=false) {
-		if (query!==undefined) scombo.value=query;
+	// show sbox with query and optionally with replace combo and buttons
+	function show(withReplace=false, query=undefined) {
 		toggleReplace(withReplace);
 		position(true);
+		if (query!==undefined) scombo.value=query;
 		select(true);
 		scombo.focus();
 	}
 
+	// hide sbox
 	function hide()  {
 		sboxElem.style.top=sboxElem.style.left='-10000px'; 
 	}
 
+	// focus sbox
 	function focus() { 
 		scombo.focus(); 
 	}
 
-	// set input text color red for 500ms
+	// set scombo text & border color red for 500ms
 	function notFound() { 
 		scombo.focus();
 		let scomboElem=getElem('scombo');
@@ -106,51 +116,52 @@ function SearchBox()  {
 		}, 500);
 	}
 
+	// select the text in the combos
 	function select(b=true) {
 		scombo.select(b);
 		rcombo.select(b);
 	}
 
+	// determines if sbox rect overlaps rect
 	function overlaps(rect) {
 		let srect=sboxElem.getBoundingClientRect();
 		return !(rect.right < srect.left ||  rect.left > srect.right || rect.bottom < srect.top || rect.top > srect.bottom);
 	}
 
 	function hookEvents() {
+		// combo selection change (enter or select)
 		scombo.onchange = rcombo.onchange = (e, combo) => { 
 			if (changeFunc) changeFunc(combo===scombo ? 'next' : 'replaceNext'); 
 		};
 
+		// combos ctrl+f, ctrl+h, tab 
 		scombo.onkeydown = rcombo.onkeydown = (e, combo) => {
 			let res;
 			if (keydownFunc) res=keydownFunc(e, combo===scombo);
 			if (res===false || e.defaultPrevented) return;
 
-			let ctrlf=!e.shiftKey && e.ctrlKey && !e.altKey && e.key==='f', ctrlh=!e.shiftKey && e.ctrlKey && !e.altKey && e.key==='h', tab=!e.shiftKey && !e.ctrlKey && !e.altKey && e.key==='Tab';
+			let plain=!e.shiftKey && !e.ctrlKey && !e.altKey, ctrl=!e.shiftKey && e.ctrlKey && !e.altKey, ctrlshift=e.shiftKey && e.ctrlKey && !e.altKey
 
-			if (ctrlf || ctrlh || tab) {
-				e.preventDefault(); 
-				if (ctrlf && replaceVisible()) {
-					toggleReplace(false);
-					scombo.focus();
-				} else if (ctrlh && !replaceVisible()) {
-					toggleReplace(true);
-					if (scombo.value) rcombo.focus(); else scombo.focus();
-				} else if (tab) { 
-					if (combo===scombo) {
-						if (!replaceVisible()) getElem('next').focus(); else rcombo.focus();
-					} else {
-						getElem('next').focus();
-					}
-				}
+			if (ctrl && e.key==='f' && replaceVisible()) {
+				toggleReplace(false);
+				scombo.focus();
+			} else if (ctrl && e.key==='h' && !replaceVisible()) {
+				toggleReplace(true);
+				if (scombo.value) rcombo.focus(); else scombo.focus();
+			} else if (plain && e.key==='Tab') { 
+				if (combo===scombo &&replaceVisible()) rcombo.focus(); else getElem('next').focus();
 			}
+
+			// ignore some browser defauklt search keys
+			if ((plain && ['F3', 'Tab'].indexOf(e.key)>-1) || (ctrl && ['f', 'h', 'g'].indexOf(e.key)>-1) || (ctrlshift && ['G'].indexOf(e.key)>-1)) e.preventDefault();
 		};
 
-		scombo.oninput = rcombo.onkeydown = (e, combo) => {
+		// combos key input
+		scombo.oninput = rcombo.oninput = (e, combo) => {
 			if (oninputFunc) oninputFunc(e, combo===scombo);
 		};
 
-		// hook onclick for next/prev/repl/replPrev/all
+		// onclick for next/prev/repl/replPrev/all
 		let workBtnClick = e => {
 			e.stopPropagation();
 			scombo.focus();
@@ -159,6 +170,8 @@ function SearchBox()  {
 				changeFunc(id);
 			}
 		};
+
+		// onkeydown for next/prev/repl/replPrev/all
 		let workBtnKeyDown = e => {
 			let tab=!e.shiftKey && !e.ctrlKey && !e.altKey && e.key==='Tab', esc=!e.shiftKey && !e.ctrlKey && !e.altKey && e.key==='Escape';
 			if (tab) {
@@ -169,33 +182,37 @@ function SearchBox()  {
 				hide();
 			}
 		};
+
 		workBtnsArr.forEach( btn => { 
 			btn.onclick=workBtnClick; 
 			btn.onkeydown=workBtnKeyDown;
 		});
 
-		// hook onclick for the option buttons
+		// onclick for the option buttons
 		let optBtnClick = e => {
 			e.stopPropagation();
 			let btn=e.currentTarget, id=btn.dataset.id;
 
 			let t=toggleOpt(btn);
-			if (id==='regexp') disableOpt('wholeWord', t);
+			if (id==='regex') disableOpt('wholeWord', t);
 
 			scombo.focus();
 			if (optchangeFunc) optchangeFunc(id);
 		};
 		optBtnsArr.forEach(btn => { btn.onclick=optBtnClick; });
 
+		// onclick for the options panel toggle btn
 		getElem('optToggler').onclick = e => { 
 			toggleOptPanel(); 
 		}
 
+		// onclick anywhere else
 		sboxElem.onclick = e => { 
 			e.stopPropagation(); 
 			scombo.focus(); 
 		}
 		
+		// combo blur
 		scombo.onblur = rcombo.onblur = e => { 
 			if (blurFunc) {
 				let relatedTarget=e.relatedTarget ? e.relatedTarget : document.activeElement;
@@ -204,33 +221,34 @@ function SearchBox()  {
 		}
 	}
 
+	// constructor
 	function ctor(parent_, btnState_) {
 		self=this; parent=parent_; btnState=btnState_;
 
 		let outerHtml = `
 				<div class="CMsearchBox" style="top:-10000px;left:-10000px;">
-					<div data-id="scombo" class="fbSearchInputs"></div>
-					<div data-id="rcombo" class="fbSearchInputs" style="margin-top:7px;"></div>
+					<div data-id="scombo" class="cmsearchCombo"></div>
+					<div data-id="rcombo" class="cmsearchCombo" style="margin-top:7px;"></div>
 					<div style="min-height: 9px"></div>
 					<div style="float:left; ">
-						<button data-id="next" class="fbSearchBigBtns" title="Find Next (F3)">&rarr;</button>
-						<button data-id="prev" class="fbSearchBigBtns" title="Find Previous (F4)">&larr;</button>
-						<button data-id="replaceNext" class="fbSearchBigBtns" title="Replace Next">&#x21D2;</button>
-						<button data-id="replacePrev" class="fbSearchBigBtns" title="Replace Previous">&#x21D0;</button>
-						<button data-id="replaceAll" class="fbSearchBigBtns" title="Replace All">&#x21D4;</button>
+						<button data-id="next" class="cmsearchBigBtns" title="Find Next (F3)">&rarr;</button>
+						<button data-id="prev" class="cmsearchBigBtns" title="Find Previous (F4)">&larr;</button>
+						<button data-id="replaceNext" class="cmsearchBigBtns" title="Replace Next">&#x21D2;</button>
+						<button data-id="replacePrev" class="cmsearchBigBtns" title="Replace Previous">&#x21D0;</button>
+						<button data-id="replaceAll" class="cmsearchBigBtns" title="Replace All">&#x21D4;</button>
 					</div>
 					<div style="float:right">
-						<button data-id="optToggler" class="fbSearchSmallBtns" title="settings" style="margin-top:4px;margin-right:1px">&#9660;</button> 
+						<button data-id="optToggler" class="cmsearchSmallBtns" title="settings" style="margin-top:4px;margin-right:1px">&#9660;</button> 
 					</div>
 					<div style="clear:both"></div>
-					<div class="cmsb_optBtnsDiv" style="float:right;margin-top:7px;margin-right:1px;display:none;">
-						<button data-id="caseSensitive" class="fbSearchSmallBtns" title="Case Sensitive">C</button>
-						<button data-id="wholeWord" class="fbSearchSmallBtns" title="Whole Word">W</button>
-						<button data-id="regexp" class="fbSearchSmallBtns" title="Regular Expression">R</button>
-						<button data-id="inSelection" class="fbSearchSmallBtns" title="In Selection">S</button>
-						<button data-id="wrapAround" class="fbSearchSmallBtns" title="Wrap Around">A</button>
-						<button data-id="highlight" class="fbSearchSmallBtns" title="Highlight">H</button>
-						<button data-id="persistent" class="fbSearchSmallBtns" title="Persistent Dialog">P</button>
+					<div data-id="optBtnsDiv" style="float:right;margin-top:7px;margin-right:1px;display:none;">
+						<button data-id="caseSensitive" class="cmsearchSmallBtns" title="Case Sensitive">C</button>
+						<button data-id="wholeWord" class="cmsearchSmallBtns" title="Whole Word">W</button>
+						<button data-id="regex" class="cmsearchSmallBtns" title="Regular Expression">R</button>
+						<button data-id="inSelection" class="cmsearchSmallBtns" title="In Selection">S</button>
+						<button data-id="wrapAround" class="cmsearchSmallBtns" title="Wrap Around">A</button>
+						<button data-id="highlight" class="cmsearchSmallBtns" title="Highlight">H</button>
+						<button data-id="persistent" class="cmsearchSmallBtns" title="Persistent Dialog">P</button>
 					</div>
 				</div>`;
 
@@ -248,15 +266,15 @@ function SearchBox()  {
 		scombo=Combo.New(getElem('scombo'));
 		rcombo=Combo.New(getElem('rcombo'));
 
-		let btnElems=sboxElem.getElementsByTagName('button');
 		workBtnsArr=[ getElem('next'), getElem('prev'), getElem('replaceNext'), getElem('replacePrev'), getElem('replaceAll') ]
-		optBtnsArr=[ getElem('caseSensitive'), getElem('wholeWord'), getElem('regexp'), getElem('inSelection'), getElem('wrapAround'), getElem('highlight'), getElem('persistent') ];
+		optBtnsArr=[ getElem('caseSensitive'), getElem('wholeWord'), getElem('regex'), getElem('inSelection'), getElem('wrapAround'), getElem('highlight'), getElem('persistent') ];
 
 		Object.keys(btnState).forEach(k => toggleOpt(k, btnState[k])); // init options toggled state
 
 		hookEvents();
 	}
 
+	// public interface
 	return {
 		ctor,
 		show,
@@ -265,6 +283,7 @@ function SearchBox()  {
 		focus,
 		notFound,
 		overlaps,
+		visible,
 
 		get value() { return [ scombo.value, rcombo.value ]; },
 
@@ -278,9 +297,10 @@ function SearchBox()  {
 }
 
 
+// CodeMirror Search and Replace
 function CMsearch() {
 	"use strict";
-	let cm, btnState, sbox, qRegExp, hRegExp, matchMark;
+	let cm, btnState, sbox, highlightRegex, matchMark;
 
 	function cmposBefore(p1 ,p2) {
 		return p1.line<p2.line || (p1.line===p2.line && p1.ch < p2.ch);
@@ -296,35 +316,32 @@ function CMsearch() {
 	}
 	function cmposLast(cm) {
 		let line=cm.lineCount()-1, ch=cm.getLine(line).trim().length;
-		while(line>0 &&ch===0) {
-			line--;
-			ch=cm.getLine(line).trim().length;
-		}
+		while(line>0 &&ch===0) { line--; ch=cm.getLine(line).trim().length; }
 		return { line, ch};
 	}
 
 	// If newState is provided add/remove theClass accordingly, otherwise toggle theClass
 	function toggleClass(elem, theClass, newState) {
-		let matchRegExp = new RegExp('(?:^|\\s)' + theClass + '(?!\\S)', 'g');
-		let add = (arguments.length > 2 ? newState : (elem.className.match(matchRegExp) === null));
+		let matchRegex = new RegExp('(?:^|\\s)' + theClass + '(?!\\S)', 'g');
+		let add = (arguments.length > 2 ? newState : (elem.className.match(matchRegex) === null));
 
-		elem.className = elem.className.replace(matchRegExp, ''); // clear all
+		elem.className = elem.className.replace(matchRegex, ''); // clear all
 		if (add) elem.className += ' ' + theClass;
 	}
 
-	// toggle class on all cursors
+	// toggle class on CM cursors div
 	function cmToggleCursorsClass(cm, theClass, newState) {
 		toggleClass(cm.getWrapperElement().getElementsByClassName('CodeMirror-cursors')[0], theClass, newState); 
 	}
 
-	// toggle class on all individual cursors
+	// toggle class on all individual CM cursors
 	function cmToggleCursorsInnerClass(cm, theClass, newState) {
 		let cursors=Array.from(cm.getWrapperElement().getElementsByClassName('CodeMirror-cursor'));
 		cursors.forEach(c => { toggleClass(c, theClass, newState); });
 	}
 
-	// http://stackoverflow.com/questions/874709/converting-user-input-string-to-regular-expression
-	function regExpFromString(q) { 
+	// convert string to regex
+	function regExFromString(q) { 
 		let flags = q.replace(/.*\/([gimuy]*)$/, '$1');
 		if (flags===q) flags='';
 		let pattern=(flags ? q.replace(new RegExp('^/(.*?)/'+flags+'$'), '$1') : q);
@@ -332,35 +349,42 @@ function CMsearch() {
 		try { return new RegExp(pattern, flags); } catch(e) { return null; }
 	}
 
-	function setQuery(q) {
-		qRegExp=hRegExp=null;
-		if (!q) q=sbox.value[0]; if (!q) return;
+	// clear the search mark
+	function clearMark() {
+		if (matchMark) { matchMark.clear(); matchMark=null; }
+	}
 
-		if (btnState.regexp) {
-			qRegExp=regExpFromString(q);
+	// process a new query
+	function getFindRegex() {
+		let q=sbox.value[0], findRegex;
+		if (q===undefined || q===null) return null;
+
+		if (btnState.regex) {
+			findRegex=regExFromString(q);
 		} else {
 			q=q.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
 			if (q && btnState.wholeWord) q='\\b'+q+'\\b';
-			qRegExp=new RegExp(q);
+			findRegex=new RegExp(q);
 		}
-		if (qRegExp) qRegExp=new RegExp(qRegExp.source, btnState.caseSensitive ? '' : 'i');
-		hRegExp=qRegExp && q.length>1 ? new RegExp(qRegExp.source, qRegExp.flags+'g') : null;
-
-		doHighlight();
+		if (findRegex) findRegex=new RegExp(findRegex.source, btnState.caseSensitive ? '' : 'i'); // add case flag
+		return findRegex;
 	}
 
+	// update highlight overlay
 	function doHighlight() {
-		if (hRegExp) hRegExp.lastIndex=0;
+		let findRegex=getFindRegex();
+		highlightRegex=findRegex && sbox.value[0].length>1 ? new RegExp(findRegex.source, findRegex.flags+'g') : null;
+		if (highlightRegex) highlightRegex.lastIndex=0;
 		cm.setOption('maxHighlightLength', (--cm.options.maxHighlightLength) +1); // hack to rerun the overlay
 	}
 
+	// hide highlight overlay
 	function hideHighlight() {
-		if (hRegExp) {
-			hRegExp=null; 
-			doHighlight(); // remove overlay
-		}
+		highlightRegex=null;
+		cm.setOption('maxHighlightLength', (--cm.options.maxHighlightLength) +1); // hack to rerun the overlay
 	}
 
+	// calculate area to search/replace in
 	function getSearchArea() {
 		if (!btnState.inSelection) return { from: cmposFirst(), to: cmposLast(cm) };
 
@@ -368,97 +392,104 @@ function CMsearch() {
 		if (selections.length===0) return nullSel;
 
 		let selection={ from: selections[0].anchor, to: selections[0].head };
-		if (cmposAfter(selection.from, selection.to)) selection={ from: selection.to, to: selection.from };
+		if (cmposAfter(selection.from, selection.to)) selection={ from: selection.to, to: selection.from }; // force from before to
 
-		// verify our selection is not the matchMark
+		// verify our selection is not exactly the matchMark
 		let markfind=(matchMark && matchMark.find() ? matchMark.find() : null);
 		if (selections.length===1 && markfind && cmposEq(markfind.from, selection.from) && cmposEq(markfind.to, selection.to)) return nullSel;
 
 		return selection;
 	}
 
-	function findx(fw=true) {
-		if (!qRegExp) return;
+	// blink the cursor as thick red once, blink search combo text and border red once
+	function notFound() {
+		cmToggleCursorsInnerClass(cm, 'redCursor', true);
+		setTimeout(() => { cmToggleCursorsInnerClass(cm, 'redCursor', false); }, 500);
+
+		if (!btnState.inSelection) cm.setSelection(cm.getCursor());
+		if (sbox.visible()) sbox.notFound(); else cm.focus();
+	}
+
+	// the find workhorse
+	function find(fw=true) {
+		let findRegex=getFindRegex();
+		if (!findRegex) return;
 
 		let sa=getSearchArea();
 
-		let pos, prevMatch=(matchMark ? matchMark.find() : null);
+		let pos, matchPos=(matchMark ? matchMark.find() : null);
 
 		if (btnState.inSelection) {
-			pos=(prevMatch ? (fw ? prevMatch.to : prevMatch.from) : sa.from);
+			pos=(matchPos ? (fw ? matchPos.to : matchPos.from) : sa.from);
 		} else {
 			pos=cm.getCursor();
-			if (prevMatch && !fw && cmposEq(pos, prevMatch.to)) pos=prevMatch.from; 
+			if (matchPos && !fw && cmposEq(pos, matchPos.to)) pos=matchPos.from; 
 		}
 
-		let cursor = cm.getSearchCursor(qRegExp, pos);
-		let found=cursor.find(!fw);
+		let cursor = cm.getSearchCursor(findRegex, pos), found=cursor.find(!fw);
 		if (found && btnState.inSelection && (cmposBefore(cursor.from(), sa.from) ||cmposAfter(cursor.to(), sa.to))) found=null;
 		if (!found  && btnState.wrapAround) {
 			pos=fw ? sa.from : sa.to;
-			cursor = cm.getSearchCursor(qRegExp, pos);
+			cursor = cm.getSearchCursor(findRegex, pos);
 			found=cursor.find(!fw);
 			if (found && btnState.inSelection && (cmposBefore(cursor.from(), sa.from) ||cmposAfter(cursor.to(), sa.to))) found=null;
 		}
 
-		if (!found) { 
-			// blink the cursor as thick red once
-			cmToggleCursorsInnerClass(cm, 'redCursor', true);
-			setTimeout(() => { cmToggleCursorsInnerClass(cm, 'redCursor', false); }, 500);
+		if (!found) { notFound(); return false; }
+		doHighlight();
 
-			sbox.notFound();
-			return false;
-		}
-
-		if (!btnState.persistent) {
-			sbox.hide();
-			cm.focus();
-		}
+		if (!btnState.persistent) { sbox.hide(); cm.focus(); }
 
 		cm.scrollIntoView( {from: cursor.from(), to: cursor.to() }, 20);
 		
 		if (!btnState.inSelection) cm.setSelection(cursor.from(), cursor.to());
-		if (!btnState.inSelection && !btnState.persistent) cm.focus();
 
-		if (matchMark) { matchMark.clear(); matchMark=null; }
+		clearMark();
 		matchMark=cm.markText(cursor.from(), cursor.to(), { className: 'cm-searchMatch' }); 
 
 		// scroll if overlapped
-		let melem=cm.getWrapperElement().getElementsByClassName('cm-searchMatch')[0];
-		while(sbox.overlaps(melem.getBoundingClientRect())) { // scroll until sbox not covering match
-			let top=cm.getScrollInfo().top;
-			if (top<25) break; else cm.scrollTo(null, top-25); 
-		};
+		setTimeout(() => { // allow the DOM to update with the new matchMark
+			let markElem=cm.getWrapperElement().getElementsByClassName('cm-searchMatch')[0];
+			while(sbox.overlaps(markElem.getBoundingClientRect())) { // scroll until sbox not covering match
+				let top=cm.getScrollInfo().top;
+				if (top<25) break; else cm.scrollTo(null, top-25); 
+			};
+		}, 0);
 		return true;
 	}
 
-	function replace(qr, fw=true) {
-		if (!qRegExp) return;
+	// the replace workhorse
+	function replace(fw=true) {
 		if (!matchMark) return find(fw);
 
-		let pos=matchMark.find();
-		
-		if (btnState.regexp) {
-			let match = cm.getRange(pos.from, pos.to).match(qRegExp);
+		let findRegex=getFindRegex(), qr=(sbox.value[1] || ''), matchPos=matchMark.find();
+		if (!findRegex) { notFound(); return; }
+
+		if (btnState.regex) {
+			let match = cm.getRange(matchPos.from, matchPos.to).match(findRegex);
 			qr=qr.replace(/\$(\d)/g, function(_, i) { return match[i]; });
-		} 
-		cm.replaceRange(qr, pos.from, pos.to);
-		matchMark.clear(); matchMark=null; 
-		matchMark=cm.markText(pos.from, pos.to, { className: 'cm-searchMatch' }); 
+		}
+
+		cm.replaceRange(qr, matchPos.from, matchPos.to);
+		clearMark(); matchMark=cm.markText(matchPos.from, matchPos.to, { className: 'cm-searchMatch' }); 
 				
 		find(fw);
 	}
 
-	function replaceAll(qr) {
+	// the replaceAll workhorse
+	function replaceAll() {
+		let findRegex=getFindRegex(), qr=sbox.value[1];
+		if (!findRegex || !qr) { notFound(); return; }
+
 		let sa=getSearchArea();
 
 		let replaced=0;
 		cm.operation(function() {
-			for (let cursor = cm.getSearchCursor(qRegExp, sa.from); cursor.findNext();) {
+			for (let cursor = cm.getSearchCursor(findRegex, sa.from); cursor.findNext();) {
 				if (btnState.inSelection && cmposAfter(cursor.to(), sa.to)) break;
 
-				if (btnState.regexp) {
-					let match = cm.getRange(cursor.from(), cursor.to()).match(qRegExp);
+				if (btnState.regex) {
+					let match = cm.getRange(cursor.from(), cursor.to()).match(findRegex);
 					cursor.replace(qr.replace(/\$(\d)/g, function(_, i) { return match[i]; }));
 				} else {
 					cursor.replace(qr);
@@ -468,78 +499,81 @@ function CMsearch() {
 		});
 
 		if (replaced===0) {
-			sbox.notFound();
+			notFound();
 		} else if (!btnState.persistent) {
 			sbox.hide();
 			cm.focus();
 		}
-
-		return replaced;
+		clearMark();
 	}
 
+	// show widget
 	function show(withReplace=false) {
-		let query;
-		if (btnState.inSelection) {
-			query=sbox.value[0];
-		} else {
-			let selection=cm.getSelection();
-			if (selection.length>1 && selection.length<100) query=selection;
+		let selection=cm.getSelection(), q;
+		if (!btnState.inSelection && selection.length>1 && selection.length<100) {
+			q=selection;
+			clearMark();
 		}
-		setQuery(query);
+		sbox.show(withReplace, q);
+		doHighlight();
 
-		sbox.show(query, withReplace);
 	}
 
-	function hide() {
-		sbox.hide();
+	function hide(force) {
+		if (!btnState.persistent || force) {
+			sbox.hide();
+			hideHighlight();
+		}
 	}
 
 	function hookEvents() {
-
+		// searchBox change
 		sbox.onchange = (op) => {
-			let [ q, qr ]=sbox.value;
-			setQuery(q);
-
+			doHighlight();
 			if (op==='next') find();
 			else if (op==='prev') find(false);
-			else if (op==='replaceNext') replace(qr);
-			else if (op==='replacePrev') replace(qr, false);
-			else if (op==='replaceAll') replaceAll(qr);
+			else if (op==='replaceNext') replace();
+			else if (op==='replacePrev') replace(false);
+			else if (op==='replaceAll') replaceAll();
 		};
 
+		// searchBox option change
 		sbox.onoptchange = (id)  => {
-			let [ q, qr ]=sbox.value;
-			setQuery(q);
-			if (matchMark) { matchMark.clear(); matchMark=null; }
+			doHighlight();
 		};
 
+		// searchBox escape
 		sbox.onkeydown = (e, inFind) => {
 			if (e.key==='Escape') {
-				sbox.hide();
-				hideHighlight();
+				hide(true);
 				cm.focus();
 			}
 		};
 
+		// combo text change
 		sbox.oninput = (e, inFind) => {
-			if (inFind) setQuery(sbox.value[0]); 
+			if (inFind) doHighlight();
 		};
 
+		// searchBox blur
 		sbox.onblur = () => {
-			if (!btnState.persistent) sbox.hide();
+			hide();
 		};
 
+		// clear matchMark if inSelection and selection changed
 		cm.on('beforeSelectionChange', (cm, obj) => {
-			if (obj.origin && btnState.inSelection && matchMark) { matchMark.clear(); matchMark=null; }
+			if (obj.origin && btnState.inSelection && matchMark) clearMark();
 		});
 
+		// clear matchMark and optionally highlight on editor changes
 		cm.on('change', (cm, changeObj) => {	
 			if (changeObj.origin) {
-				if (!btnState.persistent) hideHighlight();
-				if (matchMark) { matchMark.clear(); matchMark=null; }
+				if (!sbox.visible()) hideHighlight();
+				clearMark();
 			}
 		});
 
+		// reposition widget on editor resize
 		cm.on('refresh', cm => {
 			sbox.position();
 		});
@@ -552,10 +586,11 @@ function CMsearch() {
 	function ctor(cm_) {
 		cm=cm_;
 
+		// initial option buttons state
 		btnState={
 			caseSensitive: false, 
 			wholeWord: false,
-			regexp: false,
+			regex: false,
 			wrapAround: false,
 			highlight: true,
 			inSelection: false,
@@ -564,15 +599,16 @@ function CMsearch() {
 
 		sbox=SearchBox.New(cm.getWrapperElement(), btnState);
 
+		// the highlight overlay
 		cm.addOverlay({
 			token: stream => {
-				if (!hRegExp || !btnState.highlight) {
+				if (!highlightRegex || !btnState.highlight) {
 					stream.skipToEnd();
 					return;
 				}
 
-				hRegExp.lastIndex = stream.pos;
-				let match = hRegExp.exec(stream.string);
+				highlightRegex.lastIndex = stream.pos;
+				let match = highlightRegex.exec(stream.string);
 				if (match && match.index == stream.pos) {
 					stream.pos += match[0].length || 1;
 					return btnState.inSelection ? 'inSelectionSearchHighlight' : 'searchHighlight';
@@ -584,35 +620,39 @@ function CMsearch() {
 			}
 		});
 
-		// add the key binding, doing a context switchto escape the keypress handler
-		cm.addKeyMap({
-			'Ctrl-F': cm => show(),
-			'Ctrl-G': cm => find(),
-			'F3': cm => find(),
-			'Shift-Ctrl-G': cm => find(false),
-			'Shift-F3': cm => find(false),
-			'Shift-Ctrl-F': cm => show(true),
-			'Ctrl-H': cm => show(true),
-			'Shift-Ctrl-R': cm => ReplaceAll(),
-			'Esc': cm => { hide();  hideHighlight(); }
-		});
-
-		cm.focus(); // Combo ctors change the focus
+		cm.focus(); // as Combo ctors change the focus
 		hookEvents();
 	}
 
 	// public Interface
 	return {
-		ctor, // (cm)
-		show, // (replace=false) => show sbox with/without replace ui
-		hide, // () => hides sbox
-		find, //  (fw=true) => search fw or bw
+		ctor,
+		show,
+		hide,
+		find,
+		replace,
+		replaceAll
 	}
 }
 
 
 function initCMsearch(cm) {
-	// create an instance of SearchAndReplace 
-	// no need to store it - held by the key bindings
-	CMsearch.New(cm);
+	// create an instance of SearchAndReplace (held by the key bindings)
+	let cmsearch=CMsearch.New(cm);
+
+	// add the key binding, doing a context switchto escape the keypress handler
+	cm.addKeyMap({
+		'Ctrl-F': cm => cmsearch.show(),
+		'Ctrl-G': cm => cmsearch.find(),
+		'F3': cm => cmsearch.find(),
+		'Shift-Ctrl-G': cm => cmsearch.find(false),
+		'Shift-F3': cm => cmsearch.find(false),
+		'Shift-Ctrl-F': cm => cmsearch.show(true),
+		'Ctrl-H': cm => cmsearch.show(true),
+		'Ctrl-F3': cm => cmsearch.replace(), 
+		'Shift-Ctrl-H': cm => cmsearch.replace(),
+		'Shift-Ctrl-F3': cm => cmsearch.replace(false), 
+		'Shift-Ctrl-R': cm => cmsearch.ReplaceAll(),
+		'Esc': cm => { cmsearch.hide(true) }
+	});
 }
