@@ -153,7 +153,7 @@ function SearchBox()  {
 			}
 
 			// ignore some browser defauklt search keys
-			if ((plain && ['F3', 'Tab'].indexOf(e.key)>-1) || (ctrl && ['f', 'h', 'g'].indexOf(e.key)>-1) || (ctrlshift && ['G'].indexOf(e.key)>-1)) e.preventDefault();
+			if ((plain && ['F3', 'Tab'].indexOf(e.key)>-1) || (ctrl && ['f', 'h', 'g', 'F', 'H', 'G'].indexOf(e.key)>-1) || (ctrlshift && ['g', 'G'].indexOf(e.key)>-1)) e.preventDefault();
 		};
 
 		// combos key input
@@ -319,6 +319,13 @@ function CMsearch() {
 		while(line>0 &&ch===0) { line--; ch=cm.getLine(line).trim().length; }
 		return { line, ch};
 	}
+	function cmselection() {
+		let selections=cm.listSelections();
+		if (selections.length===0) return null;
+		let selection={ from: selections[0].anchor, to: selections[0].head };
+		if (cmposAfter(selection.from, selection.to)) selection={ from: selection.to, to: selection.from }; // force from before to
+		return selection;		
+	}
 
 	// If newState is provided add/remove theClass accordingly, otherwise toggle theClass
 	function toggleClass(elem, theClass, newState) {
@@ -384,20 +391,17 @@ function CMsearch() {
 		cm.setOption('maxHighlightLength', (--cm.options.maxHighlightLength) +1); // hack to rerun the overlay
 	}
 
+	// return true if the current selection is exactly the matchPos
+	function selectionIsMatchmark() {
+		let selection=cmselection(), pos=(matchMark ? matchMark.find() : null);
+		return (btnState.inSelection && selection && pos && cmposEq(pos.from, selection.from) && cmposEq(pos.to, selection.to));
+	}
+
 	// calculate area to search/replace in
 	function getSearchArea() {
 		if (!btnState.inSelection) return { from: cmposFirst(), to: cmposLast(cm) };
-
-		let selections=cm.listSelections(), nullSel={ from: { line:0, ch:0}, to: { line:0, ch:0} };
-		if (selections.length===0) return nullSel;
-
-		let selection={ from: selections[0].anchor, to: selections[0].head };
-		if (cmposAfter(selection.from, selection.to)) selection={ from: selection.to, to: selection.from }; // force from before to
-
-		// verify our selection is not exactly the matchMark
-		let markfind=(matchMark && matchMark.find() ? matchMark.find() : null);
-		if (selections.length===1 && markfind && cmposEq(markfind.from, selection.from) && cmposEq(markfind.to, selection.to)) return nullSel;
-
+		let selection=cmselection(), nullSel={ from: { line:0, ch:0}, to: { line:0, ch:0} };
+		if (!selection || selectionIsMatchmark()) return nullSel;
 		return selection;
 	}
 
@@ -539,6 +543,8 @@ function CMsearch() {
 
 		// searchBox option change
 		sbox.onoptchange = (id)  => {
+			if (id='inSelection' && selectionIsMatchmark()) cm.setSelection(cm.getCursor());
+			clearMark();
 			doHighlight();
 		};
 
