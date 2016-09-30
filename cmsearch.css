@@ -24,6 +24,7 @@ div.CodeMirror-cursorsVisible {
 	padding: 1px 1px 2px 1px;
 	font-size:100%;
 	position: relative;
+	line-height: 0px;
 }
 
 .cmsearchBigBtns:focus {
@@ -38,6 +39,7 @@ div.CodeMirror-cursorsVisible {
 	font-size:90%;
 	padding: 0px 1px 0px 1px;
 	font-family: monospace;
+	line-height: 0px;
 }
 
 /* setting a selection background color to prevent selection color changing when moving to search widget */
