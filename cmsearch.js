@@ -226,7 +226,7 @@ function SearchBox()  {
 		self=this; parent=parent_; btnState=btnState_;
 
 		let outerHtml = `
-				<div class="CMsearchBox" style="top:-10000px;left:-10000px;">
+				<div class="cmsearchBox" style="top:-10000px;left:-10000px;">
 					<div data-id="scombo" class="cmsearchCombo"></div>
 					<div data-id="rcombo" class="cmsearchCombo" style="margin-top:7px;"></div>
 					<div style="min-height: 9px"></div>
