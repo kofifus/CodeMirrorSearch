@@ -646,7 +646,7 @@ function initCMsearch(cm) {
 	// create an instance of SearchAndReplace
 	cm.cmsearch=CMsearch.New(cm);
 
-	// add the key binding, doing a context switchto escape the keypress handler
+	// add the key binding
 	cm.addKeyMap({
 		'Ctrl-F': cm => cm.cmsearch.show(),
 		'Ctrl-G': cm => cm.cmsearch.find(),
