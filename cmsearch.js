@@ -70,18 +70,13 @@ function SearchBox()  {
 		scombo.focus();
 	}
 
-	// return true iff sbox is visible
-	function visible() {
-		return parseFloat(sboxElem.style.top)>=0;
-	}
-
 	// position sbox on top right of parent if visible or optionally also if not
 	function position(andShow=false) {
 		if (!visible() && !andShow) return; // hidden
 		let pRect=parent.getBoundingClientRect();
 		let sRect = sboxElem.getBoundingClientRect();
-		sboxElem.style.top=(pRect.top+2)+'px';
-		sboxElem.style.left=(pRect.right-sRect.width-9)+'px';
+		sboxElem.style.top='-'+(pRect.height)+'px';
+		sboxElem.style.left=(pRect.width-sRect.width-9)+'px';
 	}
 
 	// show sbox with query and optionally with replace combo and buttons
@@ -96,6 +91,11 @@ function SearchBox()  {
 	// hide sbox
 	function hide()  {
 		sboxElem.style.top=sboxElem.style.left='-10000px'; 
+	}
+
+	// return true iff sbox is visible
+	function visible() {
+		return parseFloat(sboxElem.style.top)!==-10000;
 	}
 
 	// focus sbox
@@ -226,7 +226,7 @@ function SearchBox()  {
 		self=this; parent=parent_; btnState=btnState_;
 
 		let outerHtml = `
-				<div class="cmsearchBox" style="top:-10000px;left:-10000px;">
+				<div class="cmsearchBox">
 					<div data-id="scombo" class="cmsearchCombo"></div>
 					<div data-id="rcombo" class="cmsearchCombo" style="margin-top:7px;"></div>
 					<div style="min-height: 9px"></div>
@@ -272,6 +272,7 @@ function SearchBox()  {
 		Object.keys(btnState).forEach(k => toggleOpt(k, btnState[k])); // init options toggled state
 
 		hookEvents();
+		hide();
 	}
 
 	// public interface
