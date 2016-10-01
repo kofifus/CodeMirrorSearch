@@ -8,13 +8,14 @@ div.CodeMirror-cursorsVisible {
 	border: 2px solid grey; 
 	padding: 10px 8px 6px 8px; 
 	z-index:1000; 
-	position: fixed; 
+	position: fixed;
+	font-size: 9px;
 }
 
 .cmsearchCombo {
 	height:18px;
 	width:150px; 
-	font-size:90%;
+	font-size:13px;
 }
 
 .cmsearchBigBtns {
@@ -22,7 +23,6 @@ div.CodeMirror-cursorsVisible {
 	width: 20px;
 	margin: 0px 3px 0px 0px;
 	padding: 1px 1px 2px 1px;
-	font-size:100%;
 	position: relative;
 	line-height: 0px;
 	font-size: 14px;
@@ -38,7 +38,6 @@ div.CodeMirror-cursorsVisible {
 .cmsearchSmallBtns {
 	height:14px;
 	margin: 1px 0px 0px 3px;
-	font-size:90%;
 	padding: 0px 1px 0px 1px;
 	font-family: monospace;
 	line-height: 0px;
