@@ -26,7 +26,6 @@ div.CodeMirror-cursorsVisible {
 	position: relative;
 	line-height: 0px;
 	font-size: 14px;
-	overflow-x: visible;
 }
 
 .cmsearchBigBtns:focus {
