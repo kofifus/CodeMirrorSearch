@@ -277,16 +277,16 @@ function SearchBox()  {
 
 	// public interface
 	return {
-		ctor,
-		show,
-		hide,
-		position, // reposition the box if it is visible
-		focus,
-		notFound,
-		overlaps,
-		visible,
+		ctor, // (parent, btnState) init the sbox in parent element and init options buttons according to btnState
+		show, // (withReplace=false, query=undefined) show sbox with query and optionally with replace combo and buttons
+		hide, // hide sbox
+		visible, // return true iff sbox is visible
+		position, // (andShow=false) position sbox on top right of parent if visible or optionally also if not
+		focus, // focus sbox
+		notFound, // set scombo text & border color red for 500ms
+		overlaps, // (rect) determines if sbox rect overlaps rect
 
-		get value() { return [ scombo.value, rcombo.value ]; },
+		get value() { return [ scombo.value, rcombo.value ]; }, // return values in search & replace combos
 
 		// events
 		set onchange(f) { changeFunc=f;  }, // call f(q, op) -> (query,  'next'/'prev'/'replaceNext'/'replacePrev'/replaceAll') 
@@ -404,8 +404,8 @@ function CMsearch() {
 		cmToggleCursorsInnerClass(cm, 'redCursor', true);
 		setTimeout(() => { cmToggleCursorsInnerClass(cm, 'redCursor', false); }, 500);
 
-		if (!btnState.inSelection) cm.setSelection(cm.getCursor());
-		if (sbox.visible()) sbox.notFound(); else cm.focus();
+		//if (!btnState.inSelection) cm.setSelection(cm.getCursor());
+		if (visible()) sbox.notFound(); else cm.focus();
 	}
 
 	// the find workhorse
@@ -524,6 +524,10 @@ function CMsearch() {
 		}
 	}
 
+	function visible() {
+		return sbox.visible();
+	}
+
 	function hookEvents() {
 		// searchBox change
 		sbox.onchange = (op) => {
@@ -568,7 +572,7 @@ function CMsearch() {
 		// clear matchMark and optionally highlight on editor changes
 		cm.on('change', (cm, changeObj) => {	
 			if (changeObj.origin) {
-				if (!sbox.visible()) hideHighlight();
+				if (!visible()) hideHighlight();
 				clearMark();
 			}
 		});
@@ -626,34 +630,35 @@ function CMsearch() {
 
 	// public Interface
 	return {
-		ctor,
-		show,
-		hide,
-		find,
-		replace,
-		replaceAll
+		ctor, // (cm) initialize cmsearch in cm instance
+		show, // (withReplace=false) show widget
+		hide, // (force) hide widget if !persistent or force==true
+		visible, //  return true iff sbox is visible
+		find, // (fw=true) find next match
+		replace, // (fw=true) find next match and replace
+		replaceAll // replace all
 	}
 }
 
 
 function initCMsearch(cm) {
 	"use strict";
-	// create an instance of SearchAndReplace (held by the key bindings)
-	let cmsearch=CMsearch.New(cm);
+	// create an instance of SearchAndReplace
+	cm.cmsearch=CMsearch.New(cm);
 
 	// add the key binding, doing a context switchto escape the keypress handler
 	cm.addKeyMap({
-		'Ctrl-F': cm => cmsearch.show(),
-		'Ctrl-G': cm => cmsearch.find(),
-		'F3': cm => cmsearch.find(),
-		'Shift-Ctrl-G': cm => cmsearch.find(false),
-		'Shift-F3': cm => cmsearch.find(false),
-		'Shift-Ctrl-F': cm => cmsearch.show(true),
-		'Ctrl-H': cm => cmsearch.show(true),
-		'Ctrl-F3': cm => cmsearch.replace(), 
-		'Shift-Ctrl-H': cm => cmsearch.replace(),
-		'Shift-Ctrl-F3': cm => cmsearch.replace(false), 
-		'Shift-Ctrl-R': cm => cmsearch.ReplaceAll(),
-		'Esc': cm => { cmsearch.hide(true) }
+		'Ctrl-F': cm => cm.cmsearch.show(),
+		'Ctrl-G': cm => cm.cmsearch.find(),
+		'F3': cm => cm.cmsearch.find(),
+		'Shift-Ctrl-G': cm => cm.cmsearch.find(false),
+		'Shift-F3': cm => cm.cmsearch.find(false),
+		'Shift-Ctrl-F': cm => cm.cmsearch.show(true),
+		'Ctrl-H': cm => cm.cmsearch.show(true),
+		'Ctrl-F3': cm => cm.cmsearch.replace(), 
+		'Shift-Ctrl-H': cm => cm.cmsearch.replace(),
+		'Shift-Ctrl-F3': cm => cm.cmsearch.replace(false), 
+		'Shift-Ctrl-R': cm => cm.cmsearch.ReplaceAll(),
+		'Esc': cm => { cm.cmsearch.hide(true) }
 	});
 }
