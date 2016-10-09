@@ -1,27 +1,43 @@
-div.CodeMirror-cursorsVisible {
-	visibility: visible !important;
+.CodeMirror .cm-spell-error { 
+	background-image: url('images/red-wavy-underline.gif');
+	background-position: bottom;
+	background-repeat: repeat-x;
 }
 
 .cmsearchBox {
 	display: inline-block; 
 	line-height: 0em;
 	border: 2px solid grey; 
-	padding: 10px 8px 6px 8px; 
+	padding: 10px 4px 4px 6px; 
 	z-index:1000; 
-	position: relative;
+	position: relative; 
 	font-size: 9px;
 }
 
 .cmsearchCombo {
 	height:18px;
-	width:150px; 
-	font-size:13px;
+	width:137px; 
+	font-size: 13px;
+	display: inline-block;
+}
+
+.cmsearchCloseBtn {
+	display:block;
+	top:0px;
+	right:0px;
+	height: 12px;
+	width: 11px;
+	padding: 0px 1px 0px 1px;
+	font-family: monospace;
+	position: absolute;
+	line-height: 0px;
+	font-size: 11px;
 }
 
 .cmsearchBigBtns {
 	height:18px;
 	width: 20px;
-	margin: 0px 3px 0px 0px;
+	margin: 0px 7px 0px 0px;
 	padding: 1px 1px 2px 1px;
 	position: relative;
 	line-height: 0px;
@@ -39,6 +55,18 @@ div.CodeMirror-cursorsVisible {
 	margin: 1px 0px 0px 3px;
 	padding: 0px 1px 0px 1px;
 	font-family: monospace;
+	position: relative;
+	line-height: 0px;
+	font-size: 12px;
+}
+
+.cmsearchFloatedSmallBtns {
+	float:right;
+	height:14px;
+	margin: 6px 1px 0px 3px;
+	padding: 0px 1px 0px 1px;
+	font-family: monospace;
+	position: relative;
 	line-height: 0px;
 	font-size: 12px;
 }
@@ -46,6 +74,11 @@ div.CodeMirror-cursorsVisible {
 /* setting a selection background color to prevent selection color changing when moving to search widget */
 .CodeMirror-selected  { 
 	background-color: #B0C4DE !important; 
+}
+
+/* searchMatch is colored as selected text, this is needed inputStyle: contenteditable where selection is hidden when focus is on the search box */
+.cm-searchMatch {
+	background-color: #B0C4DE; 
 }
 
 /* bg color for search highlight overlay not in selection */
