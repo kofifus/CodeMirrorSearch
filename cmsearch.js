@@ -1,8 +1,12 @@
+/* eslint no-unused-vars: ["error", { "args": "none" }]*/
+/* exported initCMsearch */
+/* global Combo */
+
 // Search widget
 function SearchBox()  {
-	"use strict";
-	let self, parent, btnState;
-	let sboxElem, scombo, rcombo, workBtnsArr, optBtnsArr
+	'use strict';
+	let cm, parent, btnState;
+	let sboxElem, scombo, rcombo, workBtnsArr, optBtnsArr;
 	let changeFunc, optchangeFunc, keydownFunc, oninputFunc, blurFunc; // events
 
 	function getElem(id) { 
@@ -16,8 +20,11 @@ function SearchBox()  {
 	// toggle replace combo
 	function toggleReplace(t=undefined) {
 		if (t===undefined) t=!replaceVisible();
-		rcombo.toggle(t)
-		getElem('replaceNext').style.display=getElem('replacePrev').style.display=getElem('replaceAll').style.display=(t ? 'inline' : 'none');
+		getElem('replaceDiv').style.display=(t ? 'block' : 'none');
+		getElem('toggleReplace').innerHTML=(t ? 'F' : 'R');
+		getElem('toggleReplace').title=(t ? 'Find (ctrl+F)' : 'Replace (ctrl+R)');
+		getElem('optToggler1').style.display=getElem('replaceNext').style.display=getElem('replacePrev').style.display=getElem('replaceAll').style.display=(t ? 'inline' : 'none');
+		getElem('optToggler2').style.display=(t ? 'none' : 'inline');
 	}
 
 	// return { btn, id } - o is either btn elem or btn id
@@ -33,7 +40,7 @@ function SearchBox()  {
 
 	// return true iff optBtn is depressed, o is either btn elem or btn id
 	function optState(o) {
-		let { btn, id }=optElem(o);
+		let { btn }=optElem(o);
 		return btn ? btn.style.borderStyle==='inset' : false;
 	}
 
@@ -51,7 +58,7 @@ function SearchBox()  {
 
 	// disable optBtn, o is either btn elem or btn id
 	function disableOpt(o, t=undefined) {
-		let { btn, id }=optElem(o);
+		let { btn }=optElem(o);
 		if (!btn) return null;
 		if (t===undefined) t=!btn.disabled; // toggle
 		t=!!t;
@@ -65,7 +72,7 @@ function SearchBox()  {
 		const upTriangle=String.fromCharCode(0x25b2), downTriangle=String.fromCharCode(0x25bc);
 		let panel=getElem('optBtnsDiv');
 		if (t===undefined) t=!(panel.style.display==='inline');
-		getElem('optToggler').innerHTML=(t ? upTriangle : downTriangle);
+		getElem('optToggler1').innerHTML=getElem('optToggler2').innerHTML=(t ? upTriangle : downTriangle);
 		panel.style.display=(t ? 'inline' : 'none');
 		scombo.focus();
 	}
@@ -129,6 +136,13 @@ function SearchBox()  {
 	}
 
 	function hookEvents() {
+
+		getElem('close').onclick = e => {
+			e.stopPropagation();
+			hide();
+			cm.focus(); 
+		};
+
 		// combo selection change (enter or select)
 		scombo.onchange = rcombo.onchange = (e, combo) => { 
 			if (changeFunc) changeFunc(combo===scombo ? 'next' : 'replaceNext'); 
@@ -140,7 +154,7 @@ function SearchBox()  {
 			if (keydownFunc) res=keydownFunc(e, combo===scombo);
 			if (res===false || e.defaultPrevented) return;
 
-			let plain=!e.shiftKey && !e.ctrlKey && !e.altKey, ctrl=!e.shiftKey && e.ctrlKey && !e.altKey, ctrlshift=e.shiftKey && e.ctrlKey && !e.altKey
+			let plain=!e.shiftKey && !e.ctrlKey && !e.altKey, ctrl=!e.shiftKey && e.ctrlKey && !e.altKey, ctrlshift=e.shiftKey && e.ctrlKey && !e.altKey;
 
 			if (ctrl && e.key==='f' && replaceVisible()) {
 				toggleReplace(false);
@@ -188,6 +202,10 @@ function SearchBox()  {
 			btn.onkeydown=workBtnKeyDown;
 		});
 
+		getElem('toggleReplace').onclick = e => {
+			toggleReplace();
+		};
+
 		// onclick for the option buttons
 		let optBtnClick = e => {
 			e.stopPropagation();
@@ -202,45 +220,51 @@ function SearchBox()  {
 		optBtnsArr.forEach(btn => { btn.onclick=optBtnClick; });
 
 		// onclick for the options panel toggle btn
-		getElem('optToggler').onclick = e => { 
+		getElem('optToggler1').onclick = getElem('optToggler2').onclick = e => { 
 			toggleOptPanel(); 
-		}
+		};
 
 		// onclick anywhere else
 		sboxElem.onclick = e => { 
 			e.stopPropagation(); 
 			scombo.focus(); 
-		}
+		};
 		
 		// combo blur
 		scombo.onblur = rcombo.onblur = e => { 
 			if (blurFunc) {
 				let relatedTarget=e.relatedTarget ? e.relatedTarget : document.activeElement;
-				if (!sboxElem.contains(e.relatedTarget)) blurFunc(e);
-			}; 
-		}
+				if (!sboxElem.contains(relatedTarget)) blurFunc(e);
+			}
+		};
 	}
 
 	// constructor
-	function ctor(parent_, btnState_) {
-		self=this; parent=parent_; btnState=btnState_;
+	function ctor(cm_, btnState_) {
+		cm=cm_; parent=cm.getWrapperElement(); btnState=btnState_;
 
 		let outerHtml = `
 				<div class="cmsearchBox">
-					<div data-id="scombo" class="cmsearchCombo"></div>
-					<div data-id="rcombo" class="cmsearchCombo" style="margin-top:7px;"></div>
-					<div style="min-height: 9px"></div>
+					<button data-id="close" class="cmsearchCloseBtn" title="Close (Escape)">X</button>
+					<div data-id="searchDiv">
+						<div data-id="scombo" class="cmsearchCombo"></div>
+						<button data-id="toggleReplace" class="cmsearchFloatedSmallBtns"></button>
+					</div>
+					<div data-id="replaceDiv" style="clear:both;">
+						<div data-id="rcombo" class="cmsearchCombo"></div>
+						<button data-id="optToggler1" class="cmsearchFloatedSmallBtns" title="settings">&#9660;</button> 
+					</div>
 					<div style="float:left; ">
 						<button data-id="next" class="cmsearchBigBtns" title="Find Next (F3)">&rarr;</button>
 						<button data-id="prev" class="cmsearchBigBtns" title="Find Previous (F4)">&larr;</button>
 						<button data-id="replaceNext" class="cmsearchBigBtns" title="Replace Next">&#x21D2;</button>
 						<button data-id="replacePrev" class="cmsearchBigBtns" title="Replace Previous">&#x21D0;</button>
-						<button data-id="replaceAll" class="cmsearchBigBtns" title="Replace All">&#x21D4;</button>
+						<button data-id="replaceAll" class="cmsearchBigBtns" style="margin-right:0px;" title="Replace All">&#x21D4;</button>
 					</div>
-					<div style="float:right">
-						<button data-id="optToggler" class="cmsearchSmallBtns" title="settings" style="margin-top:4px;margin-right:1px">&#9660;</button> 
+					<div style="float:right;">
+						<button data-id="optToggler2" class="cmsearchSmallBtns" title="settings" style="margin-top:3px;margin-right:1px">&#9660;</button> 
 					</div>
-					<div style="clear:both"></div>
+					<div style="clear:both; min-height: 5px"></div>
 					<div data-id="optBtnsDiv" style="float:right;margin-top:7px;margin-right:1px;display:none;">
 						<button data-id="caseSensitive" class="cmsearchSmallBtns" title="Case Sensitive">C</button>
 						<button data-id="wholeWord" class="cmsearchSmallBtns" title="Whole Word">W</button>
@@ -266,7 +290,7 @@ function SearchBox()  {
 		scombo=Combo.New(getElem('scombo'));
 		rcombo=Combo.New(getElem('rcombo'));
 
-		workBtnsArr=[ getElem('next'), getElem('prev'), getElem('replaceNext'), getElem('replacePrev'), getElem('replaceAll') ]
+		workBtnsArr=[ getElem('next'), getElem('prev'), getElem('replaceNext'), getElem('replacePrev'), getElem('replaceAll') ];
 		optBtnsArr=[ getElem('caseSensitive'), getElem('wholeWord'), getElem('regex'), getElem('inSelection'), getElem('wrapAround'), getElem('highlight'), getElem('persistent') ];
 
 		Object.keys(btnState).forEach(k => toggleOpt(k, btnState[k])); // init options toggled state
@@ -277,11 +301,11 @@ function SearchBox()  {
 
 	// public interface
 	return {
-		ctor, // (parent, btnState) init the sbox in parent element and init options buttons according to btnState
+		ctor, // (cm, btnState) init the sbox in cm wrapper element and init options buttons according to btnState
 		show, // (withReplace=false, query=undefined) show sbox with query and optionally with replace combo and buttons
 		hide, // hide sbox
 		visible, // return true iff sbox is visible
-		position, // (andShow=false) position sbox on top right of parent if visible or optionally also if not
+		position, // (andShow=false) position sbox on top right of cm if visible or optionally also if not
 		focus, // focus sbox
 		notFound, // set scombo text & border color red for 500ms
 		overlaps, // (rect) determines if sbox rect overlaps rect
@@ -300,8 +324,8 @@ function SearchBox()  {
 
 // CodeMirror Search and Replace
 function CMsearch() {
-	"use strict";
-	let cm, btnState, sbox, highlightRegex, matchMark;
+	'use strict';
+	let cm, btnState, sbox, highlightRegex, matchMark, matchPos;
 
 	// helpers
 	function cmposBefore(p1 ,p2) { return p1.line<p2.line || (p1.line===p2.line && p1.ch < p2.ch);	}
@@ -358,7 +382,7 @@ function CMsearch() {
 	// process a new query
 	function getFindRegex() {
 		let q=sbox.value[0], findRegex;
-		if (q===undefined || q===null) return null;
+		if (!q) return null;
 
 		if (btnState.regex) {
 			findRegex=regExFromString(q);
@@ -385,17 +409,17 @@ function CMsearch() {
 		cm.setOption('maxHighlightLength', (--cm.options.maxHighlightLength) +1); // hack to rerun the overlay
 	}
 
-	// return true if the current selection is exactly the matchPos, used when toggling inSelection
-	function selectionIsMatchmark() {
-		let selection=cmselection(), pos=(matchMark ? matchMark.find() : null);
-		return (btnState.inSelection && selection && pos && cmposEq(pos.from, selection.from) && cmposEq(pos.to, selection.to));
+	// return true if inSelection and the current selection is exactly the matchPos, used when toggling inSelection
+	function selectionIsMatch() {
+		let selection=cmselection();
+		return (btnState.inSelection && selection && matchPos && cmposEq(matchPos.from, selection.from) && cmposEq(matchPos.to, selection.to));
 	}
 
 	// calculate area to search/replace in
 	function getSearchArea() {
 		if (!btnState.inSelection) return { from: cmposFirst(), to: cmposLast(cm) };
 		let selection=cmselection(), nullSel={ from: { line:0, ch:0}, to: { line:0, ch:0} };
-		if (!selection || selectionIsMatchmark()) return nullSel;
+		if (!selection || selectionIsMatch()) return nullSel;
 		return selection;
 	}
 
@@ -411,11 +435,11 @@ function CMsearch() {
 	// the find workhorse
 	function find(fw=true) {
 		let findRegex=getFindRegex();
-		if (!findRegex) return;
+		if (!findRegex) { notFound(); return false; }
 
 		let sa=getSearchArea();
 
-		let pos, matchPos=(matchMark ? matchMark.find() : null);
+		let pos;
 
 		if (btnState.inSelection) {
 			pos=(matchPos ? (fw ? matchPos.to : matchPos.from) : sa.from);
@@ -438,12 +462,12 @@ function CMsearch() {
 
 		if (!btnState.persistent) { sbox.hide(); cm.focus(); }
 
-		cm.scrollIntoView( {from: cursor.from(), to: cursor.to() }, 20);
+		matchPos={ from: cursor.from(), to: cursor.to() }
+		cm.scrollIntoView(matchPos, 20);
 		
 		if (!btnState.inSelection) cm.setSelection(cursor.from(), cursor.to());
 
-		clearMark();
-		matchMark=cm.markText(cursor.from(), cursor.to(), { className: 'cm-searchMatch' }); 
+		clearMark(); matchMark=cm.markText(matchPos.from, matchPos.to, { className: 'cm-searchMatch' }); 
 
 		// scroll if overlapped
 		setTimeout(() => { // allow the DOM to update with the new matchMark
@@ -451,16 +475,16 @@ function CMsearch() {
 			while(sbox.overlaps(markElem.getBoundingClientRect())) { // scroll until sbox not covering match
 				let top=cm.getScrollInfo().top;
 				if (top<25) break; else cm.scrollTo(null, top-25); 
-			};
+			}
 		}, 0);
 		return true;
 	}
 
 	// the replace workhorse
 	function replace(fw=true) {
-		if (!matchMark) return find(fw);
+		if (!matchPos) return find(fw);
 
-		let findRegex=getFindRegex(), qr=(sbox.value[1] || ''), matchPos=matchMark.find();
+		let findRegex=getFindRegex(), qr=(sbox.value[1] || '');
 		if (!findRegex) { notFound(); return; }
 
 		if (btnState.regex) {
@@ -541,7 +565,7 @@ function CMsearch() {
 
 		// searchBox option change
 		sbox.onoptchange = (id)  => {
-			if (id='inSelection' && selectionIsMatchmark()) cm.setSelection(cm.getCursor());
+			if (id==='inSelection' && selectionIsMatch()) cm.setSelection(cm.getCursor());
 			clearMark();
 			doHighlight();
 		};
@@ -564,16 +588,16 @@ function CMsearch() {
 			hide();
 		};
 
-		// clear matchMark if inSelection and selection changed
+		// clear matchPos if selection changed (for inSelection)
 		cm.on('beforeSelectionChange', (cm, obj) => {
-			if (obj.origin && btnState.inSelection && matchMark) clearMark();
+			if (obj.origin) matchPos=null;
 		});
 
-		// clear matchMark and optionally highlight on editor changes
+		// clear matchPos and optionally highlight on editor changes
 		cm.on('change', (cm, changeObj) => {	
 			if (changeObj.origin) {
 				if (!visible()) hideHighlight();
-				clearMark();
+				matchPos=null;
 			}
 		});
 
@@ -582,9 +606,14 @@ function CMsearch() {
 			sbox.position();
 		});
 
-		// keep an unblinking cursor on when blurring
-		cm.on('blur', cm => { cmToggleCursorsClass(cm, 'CodeMirror-cursorsVisible', true); });
-		cm.on('focus', cm => {	cmToggleCursorsClass(cm, 'CodeMirror-cursorsVisible', false); });
+		cm.on('blur', cm => { 
+			cmToggleCursorsClass(cm, 'CodeMirror-cursorsVisible', true); // keep unblinking cursor
+		});
+
+		cm.on('focus', cm => {	
+			clearMark();
+			cmToggleCursorsClass(cm, 'CodeMirror-cursorsVisible', false); // remove unblinking cursor
+		});
 	}
 
 	function ctor(cm_) {
@@ -601,7 +630,7 @@ function CMsearch() {
 			persistent: true,
 		};
 
-		sbox=SearchBox.New(cm.getWrapperElement(), btnState);
+		sbox=SearchBox.New(cm, btnState);
 
 		// the highlight overlay
 		cm.addOverlay({
@@ -637,12 +666,12 @@ function CMsearch() {
 		find, // (fw=true) find next match
 		replace, // (fw=true) find next match and replace
 		replaceAll // replace all
-	}
+	};
 }
 
 
 function initCMsearch(cm) {
-	"use strict";
+	'use strict';
 	// create an instance of SearchAndReplace
 	cm.cmsearch=CMsearch.New(cm);
 
@@ -659,6 +688,6 @@ function initCMsearch(cm) {
 		'Shift-Ctrl-H': cm => cm.cmsearch.replace(),
 		'Shift-Ctrl-F3': cm => cm.cmsearch.replace(false), 
 		'Shift-Ctrl-R': cm => cm.cmsearch.ReplaceAll(),
-		'Esc': cm => { cm.cmsearch.hide(true) }
+		'Esc': cm => cm.cmsearch.hide(true)
 	});
 }
